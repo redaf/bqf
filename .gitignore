@@ -1,5 +1,6 @@
 *
 !.clang-format
 !.gitignore
+!bqf.h
 !LICENSE
 !README.md
