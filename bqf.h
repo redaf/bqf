@@ -2,181 +2,211 @@
 #ifndef BQF_INCLUDE_H
 #define BQF_INCLUDE_H
 
+#ifndef BQF_CDEC
 #ifdef BQF_STATIC
-#define BQF_API static
+#define BQF_CDEC static
 #else
-#define BQF_API extern
+#define BQF_CDEC extern
 #endif // BQF_STATIC
+#endif // BQF_CDEC
 
-struct bqf_f32_filter;
-struct bqf_f32_state_df1;
-struct bqf_f32_state_tdf2;
+struct bqf_filter;
+struct bqf_state_df1;
+struct bqf_state_tdf2;
 
-BQF_API void bqf_f32_df1(float *y, float const *x,
-                         struct bqf_f32_filter const *filter,
-                         struct bqf_f32_state_df1 *state, unsigned int n);
+#ifndef bq_sample
+#define bq_sample float
+#endif
 
-BQF_API void bqf_f32_df1_i(float *yx, struct bqf_f32_filter const *filter,
-                           struct bqf_f32_state_df1 *state, unsigned int n);
+BQF_CDEC void bqf_df1(bq_sample *samples_out, bq_sample const *samples_in,
+                      unsigned int samples_count,
+                      struct bqf_filter const *filters,
+                      struct bqf_state_df1 *states, unsigned int filters_count);
 
-BQF_API void bqf_f32_tdf2(float *y, float const *x,
-                          struct bqf_f32_filter const *filter,
-                          struct bqf_f32_state_tdf2 *state, unsigned int n);
+BQF_CDEC void bqf_df1_i(bq_sample *samples, unsigned int samples_count,
+                        struct bqf_filter const *filters,
+                        struct bqf_state_df1 *states,
+                        unsigned int filters_count);
 
-BQF_API void bqf_f32_tdf2_i(float *yx, struct bqf_f32_filter const *filter,
-                            struct bqf_f32_state_tdf2 *state, unsigned int n);
+BQF_CDEC void bqf_tdf2(bq_sample *samples_out, bq_sample const *samples_in,
+                       unsigned int samples_count,
+                       struct bqf_filter const *filters,
+                       struct bqf_state_tdf2 *states,
+                       unsigned int filters_count);
 
-#undef BQF_API
+BQF_CDEC void bqf_tdf2_i(bq_sample *samples, unsigned int samples_count,
+                         struct bqf_filter const *filters,
+                         struct bqf_state_tdf2 *states,
+                         unsigned int filters_count);
 
 #endif // BQF_INCLUDE_H
 
 #ifdef BQF_IMPLEMENTATION
 
+#ifndef BQF_CDEF
 #ifdef BQF_STATIC
-#define BQF_IMPL static
+#define BQF_CDEF static
 #else
-#define BQF_IMPL
+#define BQF_CDEF
 #endif // BQF_STATIC
+#endif // BQF_CDEF
 
-struct bqf_f32_filter
+struct bqf_filter
 {
-    float b0;
-    float b1;
-    float b2;
-    float a1;
-    float a2;
+    bq_sample b0;
+    bq_sample b1;
+    bq_sample b2;
+    bq_sample a1;
+    bq_sample a2;
 };
 
-struct bqf_f32_state_df1
+struct bqf_state_df1
 {
-    float x1;
-    float x2;
-    float y1;
-    float y2;
+    bq_sample x1;
+    bq_sample x2;
+    bq_sample y1;
+    bq_sample y2;
 };
 
-struct bqf_f32_state_tdf2
+struct bqf_state_tdf2
 {
-    float s1;
-    float s2;
+    bq_sample s1;
+    bq_sample s2;
 };
 
-BQF_IMPL void bqf_f32_df1(float *const y, float const *const x,
-                          struct bqf_f32_filter const *const filter,
-                          struct bqf_f32_state_df1 *const state,
-                          unsigned int const n)
+BQF_CDEF void bqf_df1(bq_sample *samples_out, bq_sample const *samples_in,
+                      unsigned int samples_count,
+                      struct bqf_filter const *filters,
+                      struct bqf_state_df1 *states, unsigned int filters_count)
 {
-    float const b0 = filter->b0;
-    float const b1 = filter->b1;
-    float const b2 = filter->b2;
-    float const a1 = filter->a1;
-    float const a2 = filter->a2;
-    float x1 = state->x1;
-    float x2 = state->x2;
-    float y1 = state->y1;
-    float y2 = state->y2;
-
-    for (unsigned int i = 0; i < n; i++)
+    for (unsigned int f = 0; f < filters_count; f++)
     {
-        float const x0 = x[i];
-        float const y0 = b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
-        y2 = y1;
-        y1 = y0;
-        x2 = x1;
-        x1 = x0;
-        y[i] = y0;
-    }
+        bq_sample const b0 = filters[f].b0;
+        bq_sample const b1 = filters[f].b1;
+        bq_sample const b2 = filters[f].b2;
+        bq_sample const a1 = filters[f].a1;
+        bq_sample const a2 = filters[f].a2;
 
-    state->x1 = x1;
-    state->x2 = x2;
-    state->y1 = y1;
-    state->y2 = y2;
+        bq_sample x1 = states[f].x1;
+        bq_sample x2 = states[f].x2;
+        bq_sample y1 = states[f].y1;
+        bq_sample y2 = states[f].y2;
+
+        for (unsigned int i = 0; i < samples_count; i++)
+        {
+            bq_sample const x0 = samples_in[i];
+            bq_sample const y0 =
+                b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+            y2 = y1;
+            y1 = y0;
+            x2 = x1;
+            x1 = x0;
+            samples_out[i] = y0;
+        }
+
+        states[f].x1 = x1;
+        states[f].x2 = x2;
+        states[f].y1 = y1;
+        states[f].y2 = y2;
+    }
 }
 
-BQF_IMPL void bqf_f32_df1_i(float *const yx,
-                            struct bqf_f32_filter const *const filter,
-                            struct bqf_f32_state_df1 *const state,
-                            unsigned int const n)
+BQF_CDEF void bqf_df1_i(bq_sample *samples, unsigned int samples_count,
+                        struct bqf_filter const *filters,
+                        struct bqf_state_df1 *states,
+                        unsigned int filters_count)
 {
-    float const b0 = filter->b0;
-    float const b1 = filter->b1;
-    float const b2 = filter->b2;
-    float const a1 = filter->a1;
-    float const a2 = filter->a2;
-    float x1 = state->x1;
-    float x2 = state->x2;
-    float y1 = state->y1;
-    float y2 = state->y2;
-
-    for (unsigned int i = 0; i < n; i++)
+    for (unsigned int f = 0; f < filters_count; f++)
     {
-        float const x0 = yx[i];
-        float const y0 = b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
-        y2 = y1;
-        y1 = y0;
-        x2 = x1;
-        x1 = x0;
-        yx[i] = y0;
-    }
+        bq_sample const b0 = filters[f].b0;
+        bq_sample const b1 = filters[f].b1;
+        bq_sample const b2 = filters[f].b2;
+        bq_sample const a1 = filters[f].a1;
+        bq_sample const a2 = filters[f].a2;
 
-    state->x1 = x1;
-    state->x2 = x2;
-    state->y1 = y1;
-    state->y2 = y2;
+        bq_sample x1 = states[f].x1;
+        bq_sample x2 = states[f].x2;
+        bq_sample y1 = states[f].y1;
+        bq_sample y2 = states[f].y2;
+
+        for (unsigned int i = 0; i < samples_count; i++)
+        {
+            bq_sample const x0 = samples[i];
+            bq_sample const y0 =
+                b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+            y2 = y1;
+            y1 = y0;
+            x2 = x1;
+            x1 = x0;
+            samples[i] = y0;
+        }
+
+        states[f].x1 = x1;
+        states[f].x2 = x2;
+        states[f].y1 = y1;
+        states[f].y2 = y2;
+    }
 }
 
-BQF_IMPL void bqf_f32_tdf2(float *const y, float const *const x,
-                           struct bqf_f32_filter const *const filter,
-                           struct bqf_f32_state_tdf2 *const state,
-                           unsigned int const n)
+BQF_CDEF void bqf_tdf2(bq_sample *samples_out, bq_sample const *samples_in,
+                       unsigned int samples_count,
+                       struct bqf_filter const *filters,
+                       struct bqf_state_tdf2 *states,
+                       unsigned int filters_count)
 {
-    float const b0 = filter->b0;
-    float const b1 = filter->b1;
-    float const b2 = filter->b2;
-    float const a1 = filter->a1;
-    float const a2 = filter->a2;
-    float s1 = state->s1;
-    float s2 = state->s2;
-
-    for (unsigned int i = 0; i < n; i++)
+    for (unsigned int f = 0; f < filters_count; f++)
     {
-        float const x0 = x[i];
-        float const y0 = b0 * x0 + s1;
-        s1 = b1 * x0 - a1 * y0 + s2;
-        s2 = b2 * x0 - a2 * y0;
-        y[i] = y0;
-    }
+        bq_sample const b0 = filters[f].b0;
+        bq_sample const b1 = filters[f].b1;
+        bq_sample const b2 = filters[f].b2;
+        bq_sample const a1 = filters[f].a1;
+        bq_sample const a2 = filters[f].a2;
 
-    state->s1 = s1;
-    state->s2 = s2;
+        bq_sample s1 = states[f].s1;
+        bq_sample s2 = states[f].s2;
+
+        for (unsigned int i = 0; i < samples_count; i++)
+        {
+            bq_sample const x0 = samples_in[i];
+            bq_sample const y0 = b0 * x0 + s1;
+            s1 = b1 * x0 - a1 * y0 + s2;
+            s2 = b2 * x0 - a2 * y0;
+            samples_out[i] = y0;
+        }
+
+        states[f].s1 = s1;
+        states[f].s2 = s2;
+    }
 }
 
-BQF_IMPL void bqf_f32_tdf2_i(float *const yx,
-                             struct bqf_f32_filter const *const filter,
-                             struct bqf_f32_state_tdf2 *const state,
-                             unsigned int const n)
+BQF_CDEF void bqf_tdf2_i(bq_sample *samples, unsigned int samples_count,
+                         struct bqf_filter const *filters,
+                         struct bqf_state_tdf2 *states,
+                         unsigned int filters_count)
 {
-    float const b0 = filter->b0;
-    float const b1 = filter->b1;
-    float const b2 = filter->b2;
-    float const a1 = filter->a1;
-    float const a2 = filter->a2;
-    float s1 = state->s1;
-    float s2 = state->s2;
-
-    for (unsigned int i = 0; i < n; i++)
+    for (unsigned int f = 0; f < filters_count; f++)
     {
-        float const x0 = yx[i];
-        float const y0 = b0 * x0 + s1;
-        s1 = b1 * x0 - a1 * y0 + s2;
-        s2 = b2 * x0 - a2 * y0;
-        yx[i] = y0;
+        bq_sample const b0 = filters[f].b0;
+        bq_sample const b1 = filters[f].b1;
+        bq_sample const b2 = filters[f].b2;
+        bq_sample const a1 = filters[f].a1;
+        bq_sample const a2 = filters[f].a2;
+
+        bq_sample s1 = states[f].s1;
+        bq_sample s2 = states[f].s2;
+
+        for (unsigned int i = 0; i < samples_count; i++)
+        {
+            bq_sample const x0 = samples[i];
+            bq_sample const y0 = b0 * x0 + s1;
+            s1 = b1 * x0 - a1 * y0 + s2;
+            s2 = b2 * x0 - a2 * y0;
+            samples[i] = y0;
+        }
+
+        states[f].s1 = s1;
+        states[f].s2 = s2;
     }
-
-    state->s1 = s1;
-    state->s2 = s2;
 }
-
-#undef BQF_IMPL
 
 #endif // BQF_IMPLEMENTATION
