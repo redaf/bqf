@@ -10,13 +10,32 @@
 #endif // BQF_STATIC
 #endif // BQF_CDEC
 
-struct bqf_filter;
-struct bqf_state_df1;
-struct bqf_state_tdf2;
-
 #ifndef bq_sample
 #define bq_sample float
 #endif
+
+struct bqf_filter
+{
+    bq_sample b0;
+    bq_sample b1;
+    bq_sample b2;
+    bq_sample a1;
+    bq_sample a2;
+};
+
+struct bqf_state_df1
+{
+    bq_sample x1;
+    bq_sample x2;
+    bq_sample y1;
+    bq_sample y2;
+};
+
+struct bqf_state_tdf2
+{
+    bq_sample s1;
+    bq_sample s2;
+};
 
 BQF_CDEC void bqf_df1(bq_sample *samples_out,
                       bq_sample const *samples_in,
@@ -55,29 +74,6 @@ BQF_CDEC void bqf_tdf2_i(bq_sample *samples,
 #define BQF_CDEF
 #endif // BQF_STATIC
 #endif // BQF_CDEF
-
-struct bqf_filter
-{
-    bq_sample b0;
-    bq_sample b1;
-    bq_sample b2;
-    bq_sample a1;
-    bq_sample a2;
-};
-
-struct bqf_state_df1
-{
-    bq_sample x1;
-    bq_sample x2;
-    bq_sample y1;
-    bq_sample y2;
-};
-
-struct bqf_state_tdf2
-{
-    bq_sample s1;
-    bq_sample s2;
-};
 
 BQF_CDEF void bqf_df1(bq_sample *samples_out,
                       bq_sample const *samples_in,
