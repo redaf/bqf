@@ -18,23 +18,28 @@ struct bqf_state_tdf2;
 #define bq_sample float
 #endif
 
-BQF_CDEC void bqf_df1(bq_sample *samples_out, bq_sample const *samples_in,
+BQF_CDEC void bqf_df1(bq_sample *samples_out,
+                      bq_sample const *samples_in,
                       unsigned int samples_count,
                       struct bqf_filter const *filters,
-                      struct bqf_state_df1 *states, unsigned int filters_count);
+                      struct bqf_state_df1 *states,
+                      unsigned int filters_count);
 
-BQF_CDEC void bqf_df1_i(bq_sample *samples, unsigned int samples_count,
+BQF_CDEC void bqf_df1_i(bq_sample *samples,
+                        unsigned int samples_count,
                         struct bqf_filter const *filters,
                         struct bqf_state_df1 *states,
                         unsigned int filters_count);
 
-BQF_CDEC void bqf_tdf2(bq_sample *samples_out, bq_sample const *samples_in,
+BQF_CDEC void bqf_tdf2(bq_sample *samples_out,
+                       bq_sample const *samples_in,
                        unsigned int samples_count,
                        struct bqf_filter const *filters,
                        struct bqf_state_tdf2 *states,
                        unsigned int filters_count);
 
-BQF_CDEC void bqf_tdf2_i(bq_sample *samples, unsigned int samples_count,
+BQF_CDEC void bqf_tdf2_i(bq_sample *samples,
+                         unsigned int samples_count,
                          struct bqf_filter const *filters,
                          struct bqf_state_tdf2 *states,
                          unsigned int filters_count);
@@ -74,10 +79,12 @@ struct bqf_state_tdf2
     bq_sample s2;
 };
 
-BQF_CDEF void bqf_df1(bq_sample *samples_out, bq_sample const *samples_in,
+BQF_CDEF void bqf_df1(bq_sample *samples_out,
+                      bq_sample const *samples_in,
                       unsigned int samples_count,
                       struct bqf_filter const *filters,
-                      struct bqf_state_df1 *states, unsigned int filters_count)
+                      struct bqf_state_df1 *states,
+                      unsigned int filters_count)
 {
     for (unsigned int f = 0; f < filters_count; f++)
     {
@@ -95,8 +102,7 @@ BQF_CDEF void bqf_df1(bq_sample *samples_out, bq_sample const *samples_in,
         for (unsigned int i = 0; i < samples_count; i++)
         {
             bq_sample const x0 = samples_in[i];
-            bq_sample const y0 =
-                b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+            bq_sample const y0 = b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
             y2 = y1;
             y1 = y0;
             x2 = x1;
@@ -111,7 +117,8 @@ BQF_CDEF void bqf_df1(bq_sample *samples_out, bq_sample const *samples_in,
     }
 }
 
-BQF_CDEF void bqf_df1_i(bq_sample *samples, unsigned int samples_count,
+BQF_CDEF void bqf_df1_i(bq_sample *samples,
+                        unsigned int samples_count,
                         struct bqf_filter const *filters,
                         struct bqf_state_df1 *states,
                         unsigned int filters_count)
@@ -132,8 +139,7 @@ BQF_CDEF void bqf_df1_i(bq_sample *samples, unsigned int samples_count,
         for (unsigned int i = 0; i < samples_count; i++)
         {
             bq_sample const x0 = samples[i];
-            bq_sample const y0 =
-                b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+            bq_sample const y0 = b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
             y2 = y1;
             y1 = y0;
             x2 = x1;
@@ -148,7 +154,8 @@ BQF_CDEF void bqf_df1_i(bq_sample *samples, unsigned int samples_count,
     }
 }
 
-BQF_CDEF void bqf_tdf2(bq_sample *samples_out, bq_sample const *samples_in,
+BQF_CDEF void bqf_tdf2(bq_sample *samples_out,
+                       bq_sample const *samples_in,
                        unsigned int samples_count,
                        struct bqf_filter const *filters,
                        struct bqf_state_tdf2 *states,
@@ -179,7 +186,8 @@ BQF_CDEF void bqf_tdf2(bq_sample *samples_out, bq_sample const *samples_in,
     }
 }
 
-BQF_CDEF void bqf_tdf2_i(bq_sample *samples, unsigned int samples_count,
+BQF_CDEF void bqf_tdf2_i(bq_sample *samples,
+                         unsigned int samples_count,
                          struct bqf_filter const *filters,
                          struct bqf_state_tdf2 *states,
                          unsigned int filters_count)
